@@ -1,5 +1,5 @@
 -- SQL zoo Tutorials
--- SELECT Basics exercises
+-- SELECT Basics exercises (at sql-zoo tutorial))
 SELECT population FROM world
   WHERE name = 'Germany'
 
@@ -44,7 +44,7 @@ SELECT name FROM world
 SELECT name FROM world
   WHERE name LIKE '%o__o%'
 
--- SELECT from world exercises
+-- More SELECT exercises (world at sql-zoo tutorial)
 SELECT name, continent, population FROM world
 
 SELECT name FROM world
@@ -89,7 +89,7 @@ SELECT name FROM world
   AND name LIKE '%o%'
   AND name LIKE '%u%'
 
--- SELECT from nobel
+-- More SELECT exercises (nobel at sql-zoo tutorial)
 SELECT yr, subject, winner FROM nobel
   WHERE yr = 1950
 
@@ -136,7 +136,7 @@ SELECT winner, subject FROM nobel
   WHERE yr = 1984 ORDER BY subject IN ('Chemistry', 'Physics'), 
   subject, winner
 
--- SELECT within SELECT exercises
+-- More SELECT exercises (within SELECT at sql-zoo tutorial)
 SELECT name FROM world
   WHERE population >
      (SELECT population FROM world
@@ -185,7 +185,7 @@ SELECT name, continent FROM world x
   WHERE population >= ALL(SELECT population * 3 FROM world y
     WHERE y.continent = x.continent AND y.name <> x.name);
 
--- SUM and COUNT exercises
+-- SUM and COUNT exercises (at sql-zoo tutorial)
 SELECT SUM(population) FROM world
 
 SELECT DISTINCT(continent) FROM world
@@ -208,7 +208,7 @@ SELECT continent, COUNT(name) FROM world
 SELECT continent FROM world
   GROUP BY continent HAVING SUM(population) >= 100000000
 
--- JOIN I exercises
+-- JOIN exercises (at sql-zoo tutorial)
 SELECT matchid, player FROM goal
   WHERE teamid = 'GER'
 
@@ -264,7 +264,7 @@ SELECT DISTINCT mdate, team1,
       GROUP BY id, mdate, team1, team2
       ORDER BY mdate, matchid, team1, team2
 
--- More JOIN exercises
+-- More JOIN exercises (at sql-zoo tutorial)
 SELECT id, title FROM movie
   WHERE yr = 1962
 
@@ -305,7 +305,7 @@ SELECT yr, COUNT(title) FROM
 WHERE name='Rock Hudson'
 GROUP BY yr
 HAVING COUNT(title) > 2
--- 12.
+
 SELECT title, name FROM casting
   JOIN movie ON movie.id = movieid
   JOIN actor ON actor.id = actorid
@@ -316,3 +316,94 @@ AND movie.id IN
 	  JOIN actor ON actor.id = actorid
       WHERE actor.name = 'Julie Andrews')
 
+SELECT DISTINCT(name) FROM actor JOIN casting ON actorid = actor.id
+  WHERE ord = 1 GROUP BY name
+    HAVING COUNT(ord = 1) >= 15 ORDER BY name
+
+SELECT title, COUNT(actorid) FROM casting JOIN movie ON movieid = movie.id
+  WHERE yr = 1978 GROUP BY movieid, title
+    ORDER BY COUNT(actorid) DESC, title
+
+SELECT DISTINCT name FROM casting JOIN actor ON actorid = actor.id
+  WHERE name != 'Art Garfunkel' AND movieid IN(SELECT movieid
+	      FROM movie JOIN casting ON movieid = movie.id
+	                 JOIN actor ON actorid = actor.id
+	                  WHERE actor.name = 'Art Garfunkel')
+
+-- NULL exercises (at sql-zoo tutorial)
+SELECT name FROM teacher
+  WHERE dept IS NULL
+
+SELECT teacher.name, dept.name FROM teacher INNER JOIN dept
+  ON (teacher.dept=dept.id)
+
+SELECT teacher.name, dept.name FROM teacher LEFT JOIN dept
+  ON (teacher.dept=dept.id)
+
+SELECT teacher.name, dept.name FROM teacher RIGHT JOIN dept
+  ON (teacher.dept=dept.id)
+
+SELECT name, COALESCE(mobile, '07986 444 2266') FROM teacher
+
+SELECT teacher.name, COALESCE(dept.name, 'None') FROM teacher
+  LEFT JOIN dept ON dept.id = teacher.dept
+
+SELECT COUNT(name), COUNT(mobile) FROM teacher
+
+SELECT dept.name, COUNT(teacher.name) FROM teacher
+  RIGHT JOIN dept ON dept.id = teacher.dept GROUP BY dept.name
+
+SELECT name,
+    CASE WHEN dept = 1 OR dept = 2 THEN 'Sci'
+    ELSE 'Art'
+    END
+  FROM teacher
+
+SELECT name,
+    CASE WHEN dept = 1 OR dept = 2 THEN 'Sci'
+    WHEN dept = 3 THEN 'Art'
+    ELSE 'None'
+    END
+  FROM teacher
+
+-- SELF JOIN exercises (at sql-zoo tutorial)
+SELECT COUNT(name) FROM stops
+
+SELECT id FROM stops
+  WHERE name = 'Craiglockhart'
+
+SELECT id, name FROM stops
+  JOIN route ON stops.id = route.stop
+    WHERE num = '4'
+    AND company = 'LRT'
+
+SELECT company, num, COUNT(*) AS routes FROM route
+  WHERE stop=149 OR stop=53 GROUP BY company, num
+    HAVING routes >= 2
+
+SELECT a.company, a.num, a.stop, b.stop FROM route a 
+  JOIN route b ON (a.company = b.company AND a.num = b.num)
+    WHERE a.stop = 53 AND b.stop = (SELECT id FROM stops
+      WHERE name = 'London Road')
+
+SELECT a.company, a.num, stopa.name, stopb.name FROM route a
+ JOIN route b ON (a.company=b.company AND a.num=b.num)
+  JOIN stops stopa ON (a.stop=stopa.id)
+  JOIN stops stopb ON (b.stop=stopb.id)
+    WHERE stopa.name='Craiglockhart' and stopb.name = 'London Road'
+
+SELECT DISTINCT a.company, a.num FROM route a, route b
+ WHERE a.num = b.num
+ AND (a.stop = 115 AND b.stop = 137)
+
+SELECT a.company, a.num FROM route a
+  JOIN route b ON (a.company = b.company AND a.num = b.num)
+  JOIN stops stopa ON a.stop = stopa.id
+  JOIN stops stopb ON b.stop = stopb.id
+    WHERE stopa.name = 'Craiglockhart'
+    AND stopb.name = 'Tollcross';
+
+SELECT DISTINCT name, a.company, a.num FROM route a
+  JOIN route b ON (a.company = b.company AND a.num = b.num)
+  JOIN stops ON a.stop = stops.id
+    WHERE b.stop = 53;
